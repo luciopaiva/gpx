@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>GPX</title>
+
+    <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css"/>
+
+    <link rel="stylesheet" href="index.css"/>
+
+    <script src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <script src="index.js"></script>
+</head>
+<body>
+
+<div id="drop-target">
+    <div class="message">Drop your GPX file here</div>
+</div>
+
+<div id="gpx-view" class="container" style="display: none">
+
+    <div class="row">
+        <div class="col-md-12">
+            <h1 id="file-name"></h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div id="track-point-panel" class="col-md-12">
+            <table id="track-point-table" class="table table-condensed">
+                <tr>
+                    <th>Time</th>
+                    <th>Lat.</th>
+                    <th>Long.</th>
+                    <th>Elev.</th>
+                </tr>
+                <tr id="track-point-template-row" style="display: none">
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

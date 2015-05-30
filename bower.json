@@ -1,0 +1,25 @@
+{
+  "name": "gpx",
+  "version": "0.1.0",
+  "authors": [
+    "Lucio Paiva <luciopaiva@gmail.com>"
+  ],
+  "main": "index.html",
+  "keywords": [
+    "GPX",
+    "elevation",
+    "altitude"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "~3.3.4",
+    "jquery": "~2.1.4"
+  }
+}
