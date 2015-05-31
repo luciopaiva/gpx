@@ -8,8 +8,10 @@
 
     <link rel="stylesheet" href="index.css"/>
 
-    <script src="bower_components/jquery/dist/jquery.min.js"></script>
-    <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyCUPqffWedATtjKBlkmM85oIUi2Ds3kRz4"></script>
+    <script type="text/javascript" src="bower_components/async/lib/async.js"></script>
 
     <script src="index.js"></script>
 </head>
@@ -34,9 +36,13 @@
                     <th>Time</th>
                     <th>Lat.</th>
                     <th>Long.</th>
-                    <th>Elev.</th>
+                    <th>Rec. Elev. (m)</th>
+                    <th>API Elev. (m)</th>
+                    <th>API Res. (m)</th>
                 </tr>
                 <tr id="track-point-template-row" style="display: none">
+                    <td></td>
+                    <td></td>
                     <td></td>
                     <td></td>
                     <td></td>
