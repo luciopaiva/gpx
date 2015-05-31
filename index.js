@@ -1,12 +1,57 @@
 
-$(function () {
+var GPX = (function () {
+    var
+        locations = [];
 
-    function showFile(fileInfo, fileContents) {
+    function computeClimbFromMapsAPI() {
+        var
+            i,
+            diff,
+            acc = 0;
+
+        if (locations.length > 1) {
+            for (i = 1; i < locations.length; i++) {
+                if (locations[i-1].googleMapsElevation.elevation < locations[i].googleMapsElevation.elevation) {
+                    diff = locations[i].googleMapsElevation.elevation - locations[i-1].googleMapsElevation.elevation;
+                    if (diff > 10) {
+                        console.info('up ' + diff.toFixed(2) + 'm, ' + acc.toFixed(0) + 'm so far.');
+                    }
+                    acc += diff;
+                }
+            }
+        }
+
+        return acc;
+    }
+
+    function computeClimbFromFileData() {
+        var
+            i,
+            diff,
+            acc = 0;
+
+        if (locations.length > 1) {
+            for (i = 1; i < locations.length; i++) {
+                if (locations[i-1].recordedElevation < locations[i].recordedElevation) {
+                    diff = locations[i].recordedElevation - locations[i-1].recordedElevation;
+                    if (diff > 10) {
+                        console.info('up ' + diff.toFixed(2) + 'm, ' + acc.toFixed(0) + 'm so far.');
+                    }
+                    acc += diff;
+                }
+            }
+        }
+
+        return acc;
+    }
+
+    function loadFileLocations(fileContents) {
         var
             gpx,
             table,
-            locations = [],
             template;
+
+        locations = [];
 
         gpx = $.parseXML(fileContents);
 
@@ -14,21 +59,21 @@ $(function () {
         table = $('#track-point-table').detach();
         table.remove('tr:gt(0)'); // removes all previous generated TRs (but not the first one, which is the header!).
 
-        $(gpx).find('trkpt').each(function (index) {
+        $(gpx).find('trkpt').each(function () {
             var
                 row,
                 trkpt = this,
-                /*
-                 It's way faster to do getElementsByTagName/getAttribute instead of using jQuery's find/attr. It makes a
-                 lot of difference in the final loading time when you have to do it thousands of times.
-                 */
+            /*
+             It's way faster to do getElementsByTagName/getAttribute instead of using jQuery's find/attr. It makes a
+             lot of difference in the final loading time when you have to do it thousands of times.
+             */
                 location = {
                     timestamp: trkpt.getElementsByTagName('time')[0].textContent,
                     latLng: {
                         lat: parseFloat(trkpt.getAttribute('lat')),
                         lng: parseFloat(trkpt.getAttribute('lon'))
                     },
-                    recordedElevation: trkpt.getElementsByTagName('ele')[0].textContent
+                    recordedElevation: parseFloat(trkpt.getElementsByTagName('ele')[0].textContent)
                 };
 
             row = template.clone();
@@ -63,16 +108,34 @@ $(function () {
             row.appendTo(table).show();
         });
 
-        table.prependTo('#track-point-panel');
+        table.appendTo('#track-point-panel');
+    }
+
+    function loadFileStats(fileInfo) {
 
         $('#file-name').text(fileInfo.name);
 
-        $('#drop-target').hide();
-        $('#gpx-view').show();
-
-        fetchGoogleMapsElevationData(locations);
+        $('#original-climb').text(computeClimbFromFileData().toFixed(0) + ' m');
     }
 
+    /**
+     * Load GPX file.
+     *
+     * @param fileInfo
+     * @param fileContents
+     */
+    function loadFile(fileInfo, fileContents) {
+
+        loadFileLocations(fileContents);
+        loadFileStats(fileInfo);
+
+        $('#drop-target').hide();
+        $('#gpx-view').show();
+    }
+
+    /**
+     * Creates a drop zone for GPX files to be dragged over and loaded.
+     */
     function prepareDropTarget() {
         $('#drop-target')
             .on('dragover dragenter', function (e) {
@@ -94,13 +157,16 @@ $(function () {
 
                 reader = new FileReader();
                 reader.onload = function (re) {
-                    showFile(fileInfo, re.target.result);
+                    loadFile(fileInfo, re.target.result);
                 };
                 reader.readAsText(fileInfo);
             });
     }
 
-    function displayGoogleMapsElevationResults(locations) {
+    /**
+     * Updates the UI with the elevation results from Google Maps API.
+     */
+    function displayGoogleMapsElevationResults() {
 
         locations.forEach(function (location) {
             var
@@ -113,7 +179,18 @@ $(function () {
         });
     }
 
-    function fetchGoogleMapsElevationData(locations) {
+    function showClimbComputedFromMapsAPI() {
+        $('#maps-climb').text(computeClimbFromMapsAPI().toFixed(0) + ' m');
+    }
+
+    /**
+     * Fetch information about the elevation of each point in the `locations` array.
+     *
+     * It has to paginate fetches because Google imposes a limit on the number of locations per user per second, so it
+     * may take a while before all data is fetched (it fetches a page per second, and every page brings about 256
+     * location points; a regular file may have thousands of points).
+     */
+    function fetchGoogleMapsElevationData() {
         var
             PAGE_SIZE = 256,
             TIME_BETWEEN_REQUESTS = 1000,
@@ -149,7 +226,7 @@ $(function () {
                                 locations[locIndex + index].googleMapsElevation = results[index];
                             });
 
-                            displayGoogleMapsElevationResults(locations);
+                            displayGoogleMapsElevationResults();
 
                             locIndex += PAGE_SIZE;
 
@@ -186,10 +263,26 @@ $(function () {
                     console.info('Loaded ' + Math.round(locIndex / PAGE_SIZE) + ' pages of a total of ' + Math.ceil(locations.length / PAGE_SIZE) + '.');
                 } else {
                     console.info('All elevation information successfully fetched.')
+                    showClimbComputedFromMapsAPI();
                 }
             }
         );
     }
 
-    prepareDropTarget();
+    function init() {
+        prepareDropTarget();
+
+        $('#fetch-elevation-button').click(function () {
+            fetchGoogleMapsElevationData();
+        });
+    }
+
+    return {
+        init: init,
+        fetchGoogleMapsElevationData: fetchGoogleMapsElevationData
+    };
+})();
+
+$(function () {
+    GPX.init();
 });

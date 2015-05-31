@@ -23,32 +23,77 @@
 
 <div id="gpx-view" class="container" style="display: none">
 
-    <div class="row">
+    <div class="row page-header">
         <div class="col-md-12">
-            <h1 id="file-name"></h1>
+            <h1>GPX Elevation Analyzer</h1>
         </div>
     </div>
 
     <div class="row">
-        <div id="track-point-panel" class="col-md-12">
-            <table id="track-point-table" class="table table-condensed">
-                <tr>
-                    <th>Time</th>
-                    <th>Lat.</th>
-                    <th>Long.</th>
-                    <th>Rec. Elev. (m)</th>
-                    <th>API Elev. (m)</th>
-                    <th>API Res. (m)</th>
-                </tr>
-                <tr id="track-point-template-row" style="display: none">
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </table>
+        <div class="col-md-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    General Info
+                </div>
+                <table class="table table-condensed">
+                    <tr>
+                        <th class="col-md-4">
+                            Property
+                        </th>
+                        <th class="col-md-8">
+                            Value
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>Loaded file</td>
+                        <td id="file-name"></td>
+                    </tr>
+                    <tr>
+                        <td>Climb computed from file</td>
+                        <td id="original-climb"></td>
+                    </tr>
+                    <tr>
+                        <td>Climb computed from Maps API</td>
+                        <td id="maps-climb"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="panel panel-primary">
+                <div class="panel-body text-right">
+
+                    <button class="btn btn-primary" id="fetch-elevation-button">Fetch elevation from Maps API</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+
+            <div id="track-point-panel" class="panel panel-primary">
+                <div class="panel-heading">Location Points</div>
+                <table id="track-point-table" class="table table-condensed">
+                    <tr>
+                        <th>Time</th>
+                        <th>Lat.</th>
+                        <th>Long.</th>
+                        <th>Rec. Elev. (m)</th>
+                        <th>API Elev. (m)</th>
+                        <th>API Res. (m)</th>
+                    </tr>
+                    <tr id="track-point-template-row" style="display: none">
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
         </div>
     </div>
 </div>

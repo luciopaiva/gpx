@@ -17,3 +17,19 @@
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     font-size: 2em;
 }
+
+.round-box {
+    position: relative;
+    border: 1px solid #ddd;
+    border-radius: 4px 4px 0 0;
+    padding-top: 40px;
+}
+
+.round-box:after {
+    position: absolute;
+    top: 15px;
+    left: 30px;
+    content: "Data";
+    font-size: 1.3em;
+    color: #888;
+}
