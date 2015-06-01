@@ -118,6 +118,43 @@ var GPX = (function () {
         $('#original-climb').text(computeClimbFromFileData().toFixed(0) + ' m');
     }
 
+    function loadFileClimbChart() {
+        var
+            fileData, mapsData;
+
+        fileData = locations.map(function (location) {
+            return {
+                date: new Date(location.timestamp),
+                value: location.recordedElevation
+            }
+        });
+
+        mapsData = locations.map(function (location) {
+            var
+                value;
+
+            value = location.googleMapsElevation && location.googleMapsElevation.elevation ?
+                location.googleMapsElevation.elevation :
+                0;
+
+            return {
+                date: new Date(location.timestamp),
+                value: value
+            }
+        });
+
+        MG.data_graphic({
+            //title: "Elevation",
+            //description: "GPX file elevation data",
+            data: [fileData, mapsData],
+            width: 0.95 * $('.container').width(),
+            height: 400,
+            right: 40,
+            target: '#climb-chart',
+            legend: ['GPX', 'Maps']
+        });
+    }
+
     /**
      * Load GPX file.
      *
@@ -128,6 +165,7 @@ var GPX = (function () {
 
         loadFileLocations(fileContents);
         loadFileStats(fileInfo);
+        loadFileClimbChart();
 
         $('#drop-target').hide();
         $('#gpx-view').show();
@@ -179,8 +217,13 @@ var GPX = (function () {
         });
     }
 
-    function showClimbComputedFromMapsAPI() {
+    function updateUIWithGoogleMapsData() {
+
+        $('#maps-api-info').hide();
+
         $('#maps-climb').text(computeClimbFromMapsAPI().toFixed(0) + ' m');
+
+        loadFileClimbChart();
     }
 
     /**
@@ -193,7 +236,7 @@ var GPX = (function () {
     function fetchGoogleMapsElevationData() {
         var
             PAGE_SIZE = 256,
-            TIME_BETWEEN_REQUESTS = 1000,
+            TIME_BETWEEN_REQUESTS = 1100,
             latLngs,
             locIndex,
             elevationService;
@@ -225,6 +268,8 @@ var GPX = (function () {
                             results.forEach(function (result, index) {
                                 locations[locIndex + index].googleMapsElevation = results[index];
                             });
+
+                            $('#maps-api-info').show().children('span').text('Done fetching ' + locIndex + ' of ' + locations.length + '.');
 
                             displayGoogleMapsElevationResults();
 
@@ -263,7 +308,7 @@ var GPX = (function () {
                     console.info('Loaded ' + Math.round(locIndex / PAGE_SIZE) + ' pages of a total of ' + Math.ceil(locations.length / PAGE_SIZE) + '.');
                 } else {
                     console.info('All elevation information successfully fetched.')
-                    showClimbComputedFromMapsAPI();
+                    updateUIWithGoogleMapsData();
                 }
             }
         );

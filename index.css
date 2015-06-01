@@ -33,3 +33,8 @@
     font-size: 1.3em;
     color: #888;
 }
+
+#maps-api-info {
+    margin-top: 15px;
+    display: none;
+}

@@ -5,6 +5,8 @@
     <title>GPX</title>
 
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="bower_components/metrics-graphics/dist/metricsgraphics.css"/>
+    <link rel="stylesheet" href="bower_components/font-awesome/css/font-awesome.min.css"/>
 
     <link rel="stylesheet" href="index.css"/>
 
@@ -12,6 +14,8 @@
     <script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyCUPqffWedATtjKBlkmM85oIUi2Ds3kRz4"></script>
     <script type="text/javascript" src="bower_components/async/lib/async.js"></script>
+    <script type="text/javascript" src="bower_components/d3/d3.min.js"></script>
+    <script type="text/javascript" src="bower_components/metrics-graphics/dist/metricsgraphics.min.js"></script>
 
     <script src="index.js"></script>
 </head>
@@ -62,9 +66,28 @@
 
         <div class="col-md-6">
             <div class="panel panel-primary">
-                <div class="panel-body text-right">
-
+                <div class="panel-heading">
+                    Google Elevation API
+                </div>
+                <div class="panel-body">
                     <button class="btn btn-primary" id="fetch-elevation-button">Fetch elevation from Maps API</button>
+                    <div id="maps-api-info" class="alert alert-info">
+                        <i class="fa fa-circle-o-notch fa-spin"></i>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    Elevation Chart
+                </div>
+                <div class="panel-body">
+                    <div id="climb-chart"></div>
                 </div>
             </div>
         </div>
