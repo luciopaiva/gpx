@@ -63,18 +63,40 @@ var GPX = (function () {
             var
                 row,
                 trkpt = this,
+                timestamp,
+                location;
+
             /*
-             It's way faster to do getElementsByTagName/getAttribute instead of using jQuery's find/attr. It makes a
-             lot of difference in the final loading time when you have to do it thousands of times.
+                GPX files exported from Strava rides other than your own won't bring you timestamp data. Strava does
+                this on purpose so people don't obtain other person's timings without permission.
+
+                Print some user-friendly message in case the user isn't aware of this problem.
              */
-                location = {
-                    timestamp: trkpt.getElementsByTagName('time')[0].textContent,
-                    latLng: {
-                        lat: parseFloat(trkpt.getAttribute('lat')),
-                        lng: parseFloat(trkpt.getAttribute('lon'))
-                    },
-                    recordedElevation: parseFloat(trkpt.getElementsByTagName('ele')[0].textContent)
-                };
+            try {
+                timestamp = trkpt.getElementsByTagName('time')[0].textContent;
+            } catch (e) {
+                if (e instanceof TypeError) {
+                    $('#error-view .message').html("<h1>The GPX file doesn't appear to have timestamp data.</h1>" +
+                        "<p>Strava does not allow you to export other user's time data, so if that is the case, you " +
+                        "may have to ask the author to export the GPX file for you.</p>" +
+                        "<p><a href=\"javascript:location.reload()\">Reload app</a></p>");
+                    $('#error-view').removeClass('hidden');
+                }
+                throw e;
+            }
+
+        /*
+         It's way faster to do getElementsByTagName/getAttribute instead of using jQuery's find/attr. It makes a
+         lot of difference in the final loading time when you have to do it thousands of times.
+         */
+            location = {
+                timestamp: timestamp,
+                latLng: {
+                    lat: parseFloat(trkpt.getAttribute('lat')),
+                    lng: parseFloat(trkpt.getAttribute('lon'))
+                },
+                recordedElevation: parseFloat(trkpt.getElementsByTagName('ele')[0].textContent)
+            };
 
             row = template.clone();
 

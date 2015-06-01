@@ -1,5 +1,5 @@
 
-#drop-target {
+.fullscreen {
     position: absolute;
     top: 0;
     left: 0;
@@ -10,7 +10,7 @@
     text-align: center;
 }
 
-#drop-target .message {
+.fullscreen .message {
     display: table-cell;
     vertical-align: middle;
 
