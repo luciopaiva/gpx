@@ -1,4 +1,4 @@
-# GPX Analyzer
+# GPX Elevation Analyzer
 
 This is a small experiment to compare elevation information between a GPX file and Google Maps API.
 
