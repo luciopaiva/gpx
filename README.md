@@ -1,8 +1,14 @@
-# GPX Fix
+# GPX Elevation Analyzer
 
-This app lets you fix GPX data with incorrect altitude measurements. It will access Google's Elevation API, returning
- the right elevation for every point recorded in the GPX file.
- 
+This is a small experiment to compare elevation information between a GPX file and Google Maps API.
+
+![Screenshot](https://raw.githubusercontent.com/luciopaiva/gpx/master/gpx-elev.png)
+
 ## How to use
 
-Simply drop the GPX file inside the app's window.
+Clone the repo and install dependencies:
+
+    cd gpx
+    bower install
+
+Then simply drop a GPX file into the drop zone.
