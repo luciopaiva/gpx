@@ -152,6 +152,12 @@ class Gpx {
         return acc;
     }
 
+    showErrorMessage(title, message) {
+        $('#error-view .message').html(`<h1>${title}</h1><p>${message}</p>` +
+            "<p><a href=\"javascript:location.reload()\">Reload app</a></p>");
+        $('#error-view').removeClass('hidden');
+    }
+
     processTrackPoint(trackPoint, template, tableBody) {
         let timestamp;
 
@@ -165,11 +171,9 @@ class Gpx {
             timestamp = trackPoint.getElementsByTagName('time')[0].textContent;
         } catch (e) {
             if (e instanceof TypeError) {
-                $('#error-view .message').html("<h1>The GPX file doesn't appear to have timestamp data.</h1>" +
-                    "<p>Strava does not allow you to export other user's time data, so if that is the case, you " +
-                    "may have to ask the author to export the GPX file for you.</p>" +
-                    "<p><a href=\"javascript:location.reload()\">Reload app</a></p>");
-                $('#error-view').removeClass('hidden');
+                this.showErrorMessage("This GPX file doesn't appear to contain timestamp data",
+                    "Strava does not allow you to export other user's time data, so if that is the case, you may " +
+                    "want to ask them to export the GPX file for you.");
             }
             throw e;
         }
@@ -201,13 +205,26 @@ class Gpx {
         tableBody.appendChild(row);
     }
 
+    /**
+     * Parses GPX file into an array of location points.
+     *
+     * @param {string} fileContents
+     * @return {boolean}
+     */
     loadFileLocations(fileContents) {
         const self = this;
         self.locations = [];
 
-        console.time('XML parsing');
-        const gpx = $.parseXML(fileContents);
-        console.timeEnd('XML parsing');
+        let gpx;
+        try {
+            console.time('XML parsing');
+            gpx = $.parseXML(fileContents);
+            console.timeEnd('XML parsing');
+        } catch (e) {
+            self.showErrorMessage('Invalid GPX file', 'The file could not be parsed because it does not contain ' +
+                'valid XML.');
+            return false;
+        }
 
         const template = document.querySelector('.track-point-template-container').querySelector('tr');
 
@@ -225,6 +242,8 @@ class Gpx {
 
         // reinsert table in DOM
         document.querySelector('#track-point-panel').appendChild(table);
+
+        return true;
     }
 
     loadFileStats(fileInfo) {
@@ -253,8 +272,6 @@ class Gpx {
         });
 
         MG.data_graphic({
-            //title: "Elevation",
-            //description: "GPX file elevation data",
             data: [fileData, mapsData],
             width: 0.95 * $('.container').width(),
             height: 400,
@@ -270,18 +287,29 @@ class Gpx {
      * @param fileInfo
      * @param fileContents
      */
-    loadFile(fileInfo, fileContents) {
+    async loadFile(fileInfo, fileContents) {
         $('#drop-target').hide();
         $('#loading-screen').show();
 
-        setTimeout(() => {  // make it load in the next tick so the loading screen has the chance to appear
-            this.loadFileLocations(fileContents);
+        await this.nextTick();  // make it load in the next tick so the loading screen has the chance to appear
+
+        const didLoadLocations = this.loadFileLocations(fileContents);
+
+        if (didLoadLocations) {
             this.loadFileStats(fileInfo);
             this.loadFileClimbChart();
 
             $('#loading-screen').hide();
             $('#gpx-view').show();
-        }, 10);
+        }
+    }
+
+    /**
+     * Forces everything that goes after a call to `nextTick()` to, guess what, happen in the next tick :-)
+     * @return {Promise}
+     */
+    nextTick() {
+        return new Promise((resolve, reject) => setTimeout(resolve, 10));
     }
 
     /**
