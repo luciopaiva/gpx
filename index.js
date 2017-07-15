@@ -152,7 +152,7 @@ class Gpx {
         return acc;
     }
 
-    processTrackPoint(trackPoint, template, table) {
+    processTrackPoint(trackPoint, template, tableBody) {
         let timestamp;
 
         /*
@@ -187,35 +187,18 @@ class Gpx {
             recordedElevation: parseFloat(trackPoint.getElementsByTagName('ele')[0].textContent)
         };
 
-        const row = template.clone();
+        const row = template.cloneNode(true);
 
-        row.find('td').each(function (index) {
-            const td = $(this);
-            let content = '?';
-
-            switch (index) {
-                case 0:
-                    content = location.timestamp;
-                    break;
-                case 1:
-                    content = location.latLng.lat;
-                    break;
-                case 2:
-                    content = location.latLng.lng;
-                    break;
-                case 3:
-                    content = location.recordedElevation;
-                    break;
-            }
-
-            td.text(content)
-        });
+        row.querySelector('.column-timestamp').innerText = location.timestamp;
+        row.querySelector('.column-lat').innerText = location.latLng.lat;
+        row.querySelector('.column-lng').innerText = location.latLng.lng;
+        row.querySelector('.column-recorded-elevation').innerText = location.recordedElevation;
 
         location.element = row;
 
         this.locations.push(location);
 
-        row.appendTo(table).show();
+        tableBody.appendChild(row);
     }
 
     loadFileLocations(fileContents) {
@@ -226,18 +209,22 @@ class Gpx {
         const gpx = $.parseXML(fileContents);
         console.timeEnd('XML parsing');
 
-        const template = $('#track-point-template-row').detach();
-        const table = $('#track-point-table').detach();
-        table.remove('tr:gt(0)'); // removes all previous generated TRs (but not the first one, which is the header!).
+        const template = document.querySelector('.track-point-template-container').querySelector('tr');
+
+        const table = document.querySelector('#track-point-table');
+        // temporarily remove table from DOM to speed up TR appending process
+        table.parentNode.removeChild(table);
 
         console.time('Track points loading');
+        console.info($(gpx).find('trkpt').length);
         $(gpx).find('trkpt').each(function () {
             const trackPoint = this;
-            self.processTrackPoint(trackPoint, template, table);
+            self.processTrackPoint(trackPoint, template, table.querySelector('tbody'));
         });
         console.timeEnd('Track points loading');
 
-        table.appendTo('#track-point-panel');
+        // reinsert table in DOM
+        document.querySelector('#track-point-panel').appendChild(table);
     }
 
     loadFileStats(fileInfo) {
@@ -284,13 +271,17 @@ class Gpx {
      * @param fileContents
      */
     loadFile(fileInfo, fileContents) {
-
-        this.loadFileLocations(fileContents);
-        this.loadFileStats(fileInfo);
-        this.loadFileClimbChart();
-
         $('#drop-target').hide();
-        $('#gpx-view').show();
+        $('#loading-screen').show();
+
+        setTimeout(() => {  // make it load in the next tick so the loading screen has the chance to appear
+            this.loadFileLocations(fileContents);
+            this.loadFileStats(fileInfo);
+            this.loadFileClimbChart();
+
+            $('#loading-screen').hide();
+            $('#gpx-view').show();
+        }, 10);
     }
 
     /**
@@ -302,8 +293,8 @@ class Gpx {
             const result = location.googleMapsElevation;
 
             if (result) {
-                location.element.find('td:eq(4)').text(result.elevation.toFixed(1));
-                location.element.find('td:eq(5)').text(result.resolution.toFixed(1));
+                location.element.querySelector('.column-api-elevation').innerText = result.elevation.toFixed(1);
+                location.element.querySelector('.column-api-resolution').innerText = result.resolution.toFixed(1);
             }
         });
     }

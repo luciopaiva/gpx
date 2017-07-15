@@ -25,6 +25,10 @@
     <div class="message">Drop your GPX file here</div>
 </div>
 
+<div id="loading-screen" class="fullscreen" style="display: none">
+    <div class="message">Loading GPX...</div>
+</div>
+
 <div id="error-view" class="fullscreen hidden">
     <div class="message alert alert-danger"></div>
 </div>
@@ -102,7 +106,18 @@
 
             <div id="track-point-panel" class="panel panel-primary">
                 <div class="panel-heading">Location Points</div>
+                <table class="track-point-template-container hidden">
+                    <tr>
+                        <td class="column-timestamp"></td>
+                        <td class="column-lat"></td>
+                        <td class="column-lng"></td>
+                        <td class="column-recorded-elevation"></td>
+                        <td class="column-api-elevation"></td>
+                        <td class="column-api-resolution"></td>
+                    </tr>
+                </table>
                 <table id="track-point-table" class="table table-condensed">
+                    <thead>
                     <tr>
                         <th>Time</th>
                         <th>Lat.</th>
@@ -111,14 +126,9 @@
                         <th>API Elev. (m)</th>
                         <th>API Res. (m)</th>
                     </tr>
-                    <tr id="track-point-template-row" style="display: none">
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
                 </table>
             </div>
         </div>
