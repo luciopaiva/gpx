@@ -79,7 +79,8 @@
                 <div class="panel-body">
                     <button class="btn btn-primary" id="fetch-elevation-button">Fetch elevation from Maps API</button>
                     <div id="maps-api-info" class="alert alert-info hidden">
-                        <i class="fa fa-circle-o-notch fa-spin"></i>
+                        <i id="maps-fetching" class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
+                        <i id="maps-done" class="fa fa-check-square-o hidden" aria-hidden="true"></i>
                         <span></span>
                     </div>
                 </div>

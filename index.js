@@ -9,6 +9,8 @@ class Gpx {
         this.fetchElevationButton = document.getElementById('fetch-elevation-button');
         this.elevationApiMessageBox = document.getElementById('maps-api-info');
         this.elevationApiMessageBoxTextField = this.elevationApiMessageBox.querySelector('span');
+        this.mapsFetchingSpinner = document.getElementById('maps-fetching');
+        this.mapsFetchingDone = document.getElementById('maps-done');
         this.elevationGainInMetersFileField = document.getElementById('elevation-gain-meters-file');
         this.elevationGainInMetersApiField = document.getElementById('elevation-gain-meters-api');
         this.fileNameField = document.getElementById('file-name');
@@ -121,6 +123,8 @@ class Gpx {
 
             self.updateUIWithGoogleMapsData();
             this.elevationApiMessageBoxTextField.innerText = 'Successfully loaded';
+            this.mapsFetchingDone.classList.remove('hidden');
+            this.mapsFetchingSpinner.classList.add('hidden');
 
         } catch (error) {
             console.error(error);

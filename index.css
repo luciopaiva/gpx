@@ -38,6 +38,10 @@
     margin-top: 15px;
 }
 
+#maps-api-info span {
+    margin-left: 10px;
+}
+
 #drop-target::after {  /* trick to get semi-transparent background */
     content: "";
     background: url(sample.jpeg) no-repeat center;
