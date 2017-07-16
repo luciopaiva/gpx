@@ -6,6 +6,7 @@ class Gpx {
     constructor () {
         this.locations = [];
 
+        this.dropTargetView = document.getElementById('drop-target');
         this.sampleButton = document.getElementById('sample-button');
         this.loadingProgressBar = document.getElementById('loading-progress-bar');
         this.fetchElevationButton = document.getElementById('fetch-elevation-button');
@@ -32,23 +33,24 @@ class Gpx {
      * Creates a drop zone for GPX files to be dragged over and loaded.
      */
     prepareDropTarget() {
-        $('#drop-target')
-            .on('dragover dragenter', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
-            })
-            .on('drop', (e) => {
-                e.stopPropagation();
-                e.preventDefault();
+        this.dropTargetView.addEventListener('dragover', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+        });
+        this.dropTargetView.addEventListener('dragenter', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+        });
+        this.dropTargetView.addEventListener('drop', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
 
-                e = e.originalEvent;
+            const fileInfo = e.dataTransfer.files[0];
 
-                const fileInfo = e.dataTransfer.files[0];
-
-                const reader = new FileReader();
-                reader.onload = (re) => this.loadFile(fileInfo.name, re.target.result);
-                reader.readAsText(fileInfo);
-            });
+            const reader = new FileReader();
+            reader.onload = (re) => this.loadFile(fileInfo.name, re.target.result);
+            reader.readAsText(fileInfo);
+        });
     }
 
     loadSampleGpx() {
@@ -244,7 +246,7 @@ class Gpx {
         let gpx;
         try {
             console.time('XML parsing');
-            gpx = $.parseXML(fileContents);
+            gpx = (new DOMParser()).parseFromString(fileContents, 'application/xml');
             console.timeEnd('XML parsing');
         } catch (e) {
             this.showErrorMessage('Invalid GPX file', 'The file could not be parsed because it does not contain ' +
@@ -257,7 +259,7 @@ class Gpx {
         table.parentNode.removeChild(table);
 
         console.time('Track points loading');
-        const trackPoints = $(gpx).find('trkpt').get();
+        const trackPoints = gpx.querySelectorAll('trkpt');
 
         const tickPeriod = 100;
         let nextTickAt = tickPeriod;
@@ -297,9 +299,11 @@ class Gpx {
             }
         });
 
+        const width = parseInt(getComputedStyle(this.gpxView).width, 10);
+
         MG.data_graphic({
             data: [fileData, mapsData],
-            width: 0.95 * $(this.gpxView).width(),
+            width: 0.95 * width,
             height: 400,
             right: 40,
             target: '#climb-chart',
@@ -315,7 +319,7 @@ class Gpx {
      * @return {void}
      */
     async loadFile(fileName, fileContents) {
-        $('#drop-target').hide();
+        this.dropTargetView.classList.add('hidden');
         this.loadingScreen.classList.remove('hidden');
 
         this.loadingProgressBar.style.width = '0%';
