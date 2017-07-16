@@ -7,6 +7,7 @@ class Gpx {
         this.locations = [];
 
         this.sampleButton = document.getElementById('sample-button');
+        this.loadingProgressBar = document.getElementById('loading-progress-bar');
         this.fetchElevationButton = document.getElementById('fetch-elevation-button');
         this.elevationApiMessageBox = document.getElementById('maps-api-info');
         this.elevationApiMessageBoxTextField = this.elevationApiMessageBox.querySelector('span');
@@ -236,7 +237,7 @@ class Gpx {
      *
      * @param {string} fileContents
      */
-    loadFileLocations(fileContents) {
+    async loadFileLocations(fileContents) {
         const self = this;
         self.locations = [];
 
@@ -257,8 +258,18 @@ class Gpx {
 
         console.time('Track points loading');
         const trackPoints = $(gpx).find('trkpt').get();
-        for (const trackPoint of trackPoints) {
+
+        const tickPeriod = 100;
+        let nextTickAt = tickPeriod;
+        for (let i = 0; i < trackPoints.length; i++) {
+            const trackPoint = trackPoints[i];
             self.processTrackPoint(trackPoint, table.querySelector('tbody'));
+
+            if (i === nextTickAt) {
+                this.loadingProgressBar.style.width = Math.round(100 * (i / trackPoints.length)) + '%';
+                await this.nextTick();  // force progress bar update to be rendered
+                nextTickAt += tickPeriod;
+            }
         }
         console.timeEnd('Track points loading');
 
@@ -307,9 +318,13 @@ class Gpx {
         $('#drop-target').hide();
         this.loadingScreen.classList.remove('hidden');
 
-        await this.nextTick();  // make it load in the next tick so the loading screen has the chance to appear
+        this.loadingProgressBar.style.width = '0%';
+        await this.nextTick();  // skip this tick so the loading screen has the chance to appear
 
-        this.loadFileLocations(fileContents);
+        await this.loadFileLocations(fileContents);
+
+        await this.nextTick();  // skip this tick so the loading screen has the chance to appear
+        this.loadingProgressBar.style.width = '100%';
 
         this.fileNameField.innerText = fileName;
         this.elevationGainInMetersFileField.innerText = this.computeClimbFromFileData().toFixed(0) + ' m';
