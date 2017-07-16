@@ -6,6 +6,7 @@ class Gpx {
     constructor () {
         this.locations = [];
 
+        this.sampleButton = document.getElementById('sample-button');
         this.fetchElevationButton = document.getElementById('fetch-elevation-button');
         this.elevationApiMessageBox = document.getElementById('maps-api-info');
         this.elevationApiMessageBoxTextField = this.elevationApiMessageBox.querySelector('span');
@@ -22,6 +23,7 @@ class Gpx {
 
         this.prepareDropTarget();
 
+        this.sampleButton.addEventListener('click', () => this.loadSampleGpx());
         this.fetchElevationButton.addEventListener('click', () => this.fetchGoogleMapsElevationData());
     }
 
@@ -43,9 +45,21 @@ class Gpx {
                 const fileInfo = e.dataTransfer.files[0];
 
                 const reader = new FileReader();
-                reader.onload = (re) => this.loadFile(fileInfo, re.target.result);
+                reader.onload = (re) => this.loadFile(fileInfo.name, re.target.result);
                 reader.readAsText(fileInfo);
             });
+    }
+
+    loadSampleGpx() {
+        const fileName = 'canoas.gpx';
+        const client = new XMLHttpRequest();
+        client.open('GET', fileName);
+        client.addEventListener('readystatechange', () => {
+            if (client.readyState === XMLHttpRequest.DONE) {
+                this.loadFile(fileName, client.responseText);
+            }
+        });
+        client.send();
     }
 
     async requestElevationApiPage(elevationService, locIndex) {
@@ -150,11 +164,11 @@ class Gpx {
                 const previousElevation = getElevation(this.locations[i - 1]);
                 const currentElevation = getElevation(this.locations[i]);
 
-                if (previousElevation < currentElevation) {
+                if (previousElevation < currentElevation) {  // only consider elevation _gain_
                     const diff = currentElevation - previousElevation;
 
-                    if (diff > 10) {  // discard noise
-                        console.info('up ' + diff.toFixed(2) + 'm, ' + acc.toFixed(0) + 'm so far.');
+                    if (diff > Gpx.NOISE_THRESHOLD_IN_METERS) {  // most likely noise
+                        console.info('Discarded noise: ' + diff.toFixed(2) + 'm');
                     }
                     acc += diff;
                 }
@@ -242,15 +256,16 @@ class Gpx {
         table.parentNode.removeChild(table);
 
         console.time('Track points loading');
-        console.info($(gpx).find('trkpt').length);
-        $(gpx).find('trkpt').each(function () {
-            const trackPoint = this;
+        const trackPoints = $(gpx).find('trkpt').get();
+        for (const trackPoint of trackPoints) {
             self.processTrackPoint(trackPoint, table.querySelector('tbody'));
-        });
+        }
         console.timeEnd('Track points loading');
 
         // reinsert table in DOM
+        console.time('Table appending to DOM');
         document.querySelector('#track-point-panel').appendChild(table);
+        console.timeEnd('Table appending to DOM');
     }
 
     loadFileClimbChart() {
@@ -284,10 +299,11 @@ class Gpx {
     /**
      * Load GPX file.
      *
-     * @param fileInfo
-     * @param fileContents
+     * @param {string} fileName
+     * @param {string} fileContents
+     * @return {void}
      */
-    async loadFile(fileInfo, fileContents) {
+    async loadFile(fileName, fileContents) {
         $('#drop-target').hide();
         this.loadingScreen.classList.remove('hidden');
 
@@ -295,7 +311,7 @@ class Gpx {
 
         this.loadFileLocations(fileContents);
 
-        this.fileNameField.innerText = fileInfo.name;
+        this.fileNameField.innerText = fileName;
         this.elevationGainInMetersFileField.innerText = this.computeClimbFromFileData().toFixed(0) + ' m';
 
         console.time('Elevation gain chart loading');
@@ -339,5 +355,7 @@ class Gpx {
 Gpx.TIME_BETWEEN_MAPS_API_REQUESTS = 1500;
 /** how many elevation points to request per call */
 Gpx.MAPS_API_PAGE_SIZE = 256;
+/** minimum difference in elevation to decide discarding it as noise */
+Gpx.NOISE_THRESHOLD_IN_METERS = 10;
 
 window.addEventListener('load', () => new Gpx());
