@@ -9,13 +9,7 @@ class Gpx {
         this.dropTargetView = document.getElementById('drop-target');
         this.sampleButton = document.getElementById('sample-button');
         this.loadingProgressBar = document.getElementById('loading-progress-bar');
-        this.fetchElevationButton = document.getElementById('fetch-elevation-button');
-        this.elevationApiMessageBox = document.getElementById('maps-api-info');
-        this.elevationApiMessageBoxTextField = this.elevationApiMessageBox.querySelector('span');
-        this.mapsFetchingSpinner = document.getElementById('maps-fetching');
-        this.mapsFetchingDone = document.getElementById('maps-done');
         this.elevationGainInMetersFileField = document.getElementById('elevation-gain-meters-file');
-        this.elevationGainInMetersApiField = document.getElementById('elevation-gain-meters-api');
         this.fileNameField = document.getElementById('file-name');
         this.loadingScreen = document.getElementById('loading-screen');
         this.errorView = document.getElementById('error-view');
@@ -26,7 +20,6 @@ class Gpx {
         this.prepareDropTarget();
 
         this.sampleButton.addEventListener('click', () => this.loadSampleGpx());
-        this.fetchElevationButton.addEventListener('click', () => this.fetchGoogleMapsElevationData());
     }
 
     /**
@@ -63,96 +56,6 @@ class Gpx {
             }
         });
         client.send();
-    }
-
-    async requestElevationApiPage(elevationService, locIndex) {
-        const latLngs = this.locations
-            .slice(locIndex, locIndex + Gpx.MAPS_API_PAGE_SIZE)
-            .map(location => location.latLng);
-
-        return new Promise((resolve, reject) => {
-            elevationService.getElevationForLocations({ locations: latLngs }, (results, status) => {
-
-                switch (status) {
-                    case google.maps.ElevationStatus.OK:
-
-                        results.forEach((result, index) =>
-                            this.locations[locIndex + index].googleMapsElevation = results[index]
-                        );
-
-                        this.elevationApiMessageBoxTextField.innerText = locIndex + ' of ' + this.locations.length +
-                            ' locations fetched.';
-
-                        this.displayGoogleMapsElevationResults();
-
-                        /*
-                         Wait a little before sending the next page request. Google Maps API has a limit of 1
-                         request per second per user.
-                         */
-                        window.setTimeout(resolve, Gpx.TIME_BETWEEN_MAPS_API_REQUESTS);
-
-                        break;
-                    case google.maps.ElevationStatus.OVER_QUERY_LIMIT:
-                        reject('Over query limit');
-                        break;
-                    case google.maps.ElevationStatus.INVALID_REQUEST:
-                        reject('Invalid request');
-                        break;
-                    case google.maps.ElevationStatus.REQUEST_DENIED:
-                        reject('Request denied');
-                        break;
-                    case google.maps.ElevationStatus.UNKOWN_ERROR:
-                        reject('Unknown error');
-                        break;
-                    default:
-                        reject('Unknown error code "' + status + '"');
-                        break;
-                }
-            });
-        });
-    }
-
-    /**
-     * Fetch information about the elevation of each point in the `locations` array.
-     *
-     * It has to paginate fetches because Google imposes a limit on the number of locations per user per second, so it
-     * may take a while before all data is fetched (it fetches a page per second, and every page brings about 256
-     * location points; a regular file may have thousands of points).
-     */
-    async fetchGoogleMapsElevationData() {
-        const
-            self = this;
-
-        const elevationService = new google.maps.ElevationService();
-
-        this.fetchElevationButton.classList.add('hidden');
-        this.elevationApiMessageBox.classList.remove('hidden');
-
-        let locIndex = 0;
-        try {
-            // Google Maps API doesn't support a large number of locations at once, so we have to paginate it
-            for (locIndex = 0; locIndex < self.locations.length; locIndex += Gpx.MAPS_API_PAGE_SIZE) {
-                await this.requestElevationApiPage(elevationService, locIndex);
-            }
-
-            this.elevationApiMessageBoxTextField.innerText = 'Loading chart...';
-            await this.nextTick();  // give it chance for the message to appear
-
-            self.updateUIWithGoogleMapsData();
-            this.elevationApiMessageBoxTextField.innerText = 'Successfully loaded';
-            this.mapsFetchingDone.classList.remove('hidden');
-            this.mapsFetchingSpinner.classList.add('hidden');
-
-        } catch (error) {
-            console.error(error);
-            console.info('locIndex = ' + locIndex);
-            console.info('Loaded ' + Math.round(locIndex / Gpx.MAPS_API_PAGE_SIZE) + ' pages of a total of ' +
-                Math.ceil(self.locations.length / Gpx.MAPS_API_PAGE_SIZE) + '.');
-        }
-    }
-
-    computeClimbFromMapsAPI() {
-        return this.computeElevationGain(location => location.googleMapsElevation.elevation);
     }
 
     computeClimbFromFileData() {
@@ -288,21 +191,10 @@ class Gpx {
                 value: location.recordedElevation
         }});
 
-        const mapsData = this.locations.map(location => {
-            const value = location.googleMapsElevation && location.googleMapsElevation.elevation ?
-                location.googleMapsElevation.elevation :
-                0;
-
-            return {
-                date: new Date(location.timestamp),
-                value: value
-            }
-        });
-
         const width = parseInt(getComputedStyle(this.gpxView).width, 10);
 
         MG.data_graphic({
-            data: [fileData, mapsData],
+            data: [fileData],
             width: 0.95 * width,
             height: 400,
             right: 40,
@@ -346,27 +238,7 @@ class Gpx {
      * @return {Promise}
      */
     nextTick() {
-        return new Promise((resolve, reject) => setTimeout(resolve, 10));
-    }
-
-    /**
-     * Updates the UI with the elevation results from Google Maps API.
-     */
-    displayGoogleMapsElevationResults() {
-
-        this.locations.forEach(function (location) {
-            const result = location.googleMapsElevation;
-
-            if (result) {
-                location.element.querySelector('.column-api-elevation').innerText = result.elevation.toFixed(1);
-                location.element.querySelector('.column-api-resolution').innerText = result.resolution.toFixed(1);
-            }
-        });
-    }
-
-    updateUIWithGoogleMapsData() {
-        this.elevationGainInMetersApiField.innerText = this.computeClimbFromMapsAPI().toFixed(0) + ' m';
-        this.loadFileClimbChart();
+        return new Promise((resolve) => setTimeout(resolve, 10));
     }
 }
 

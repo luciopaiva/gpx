@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html>
-<head lang="en">
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <title>GPX</title>
 
@@ -10,7 +10,6 @@
 
     <link rel="stylesheet" href="index.css"/>
 
-    <script type="text/javascript" src="//maps.googleapis.com/maps/api/js?key=AIzaSyCUPqffWedATtjKBlkmM85oIUi2Ds3kRz4"></script>
     <script type="text/javascript" src="libs/d3.min.js"></script>
     <script type="text/javascript" src="libs/metricsgraphics.min.js"></script>
 
@@ -58,7 +57,7 @@
     </div>
 
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-12">
             <div class="panel panel-primary">
                 <div class="panel-heading">
                     General Info
@@ -80,27 +79,7 @@
                         <td>Elev. gain - file</td>
                         <td id="elevation-gain-meters-file"></td>
                     </tr>
-                    <tr>
-                        <td>Elev. gain - Maps API</td>
-                        <td id="elevation-gain-meters-api"></td>
-                    </tr>
                 </table>
-            </div>
-        </div>
-
-        <div class="col-md-6">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    Google Elevation API
-                </div>
-                <div class="panel-body">
-                    <button class="btn btn-primary" id="fetch-elevation-button">Fetch elevation from Maps API</button>
-                    <div id="maps-api-info" class="alert alert-info hidden">
-                        <i id="maps-fetching" class="fa fa-circle-o-notch fa-spin" aria-hidden="true"></i>
-                        <i id="maps-done" class="fa fa-check-square-o hidden" aria-hidden="true"></i>
-                        <span></span>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
